@@ -1,0 +1,34 @@
+<idea-plugin>
+    <id>com.plugin.projectview.bottomfiles</id>
+    <name>Project View Bottom Files</name>
+    <vendor url="https://github.com/example/project-view-bottom-files">Senior IntelliJ Platform Team</vendor>
+
+    <description><![CDATA[
+        <p>A high-performance IntelliJ Platform plugin that positions designated files (such as
+        <code>package-info.java</code>) at the bottom of their parent directory in the Project Tool Window.</p>
+        <ul>
+            <li><strong>Folders Always on Top:</strong> Directories remain unaffected and stay at the top.</li>
+            <li><strong>Alphabetical Ordering:</strong> All standard files remain strictly sorted A-Z.</li>
+            <li><strong>Zero UI Latency:</strong> Uses $O(1)$ fast-path in-memory matching and dumb-mode resilience.</li>
+        </ul>
+    ]]></description>
+
+    <change-notes><![CDATA[
+        <p><strong>1.0.0</strong> - Initial release with high-performance TreeStructureProvider and BottomPsiFileNode.</p>
+    ]]></change-notes>
+
+    <!-- Core Platform and Java dependencies -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 
+            TreeStructureProvider intercepts Project View nodes.
+            order="last" ensures this provider runs after Java, Kotlin, and nesting providers
+            to intercept the final PsiFileNode without breaking upstream structure.
+        -->
+        <treeStructureProvider 
+            implementation="com.plugin.projectview.bottomfiles.BottomFilesTreeStructureProvider" 
+            order="last"/>
+    </extensions>
+</idea-plugin>

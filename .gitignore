@@ -1,0 +1,19 @@
+# Project build and cache
+.gradle/
+build/
+out/
+.intellijPlatform/
+.kotlin/
+
+# IntelliJ IDEA project files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
