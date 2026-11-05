@@ -7,30 +7,22 @@ import com.intellij.psi.PsiFile
 
 /**
  * Custom PsiFileNode wrapper for files categorized by type and extension.
+ *
+ * Performance:
+ * - Pre-computes [cachedSortKey] at construction time.
+ * - Zero PSI reads or string allocations during comparator sort passes.
  */
 class CategorizedPsiFileNode(
     project: Project,
     value: PsiFile,
     viewSettings: ViewSettings,
     val category: JavaTypeCategory,
-    val customSortKey: String? = null
+    customSortKey: String? = null
 ) : PsiFileNode(project, value, viewSettings) {
 
-    /**
-     * Category weight evaluated by AlphaComparator.
-     */
-    override fun getWeight(): Int {
-        return category.weight
-    }
+    private val cachedSortKey: String = customSortKey ?: "${category.sortPrefix}${virtualFile?.name ?: value.name ?: ""}"
 
-    /**
-     * Lexicographical sort key used when "Sort by Name" is active.
-     */
-    override fun getSortKey(): Comparable<*>? {
-        if (customSortKey != null) {
-            return customSortKey
-        }
-        val fileName = virtualFile?.name ?: value?.name ?: return null
-        return "${category.sortPrefix}$fileName"
-    }
+    override fun getWeight(): Int = category.weight
+
+    override fun getSortKey(): Comparable<*>? = cachedSortKey
 }

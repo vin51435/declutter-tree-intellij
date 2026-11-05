@@ -32,6 +32,10 @@ object KotlinTypeClassifier {
 
     @JvmStatic
     fun classifyClassOrObject(ktClassOrObject: KtClassOrObject): JavaTypeCategory {
+        if (!ktClassOrObject.isValid) {
+            return JavaTypeCategory.CLASS
+        }
+
         // 1. Singleton Object (object MyObject)
         if (ktClassOrObject is KtObjectDeclaration) {
             return JavaTypeCategory.OBJECT
@@ -67,15 +71,30 @@ object KotlinTypeClassifier {
 
     @JvmStatic
     fun classifyFile(ktFile: KtFile): JavaTypeCategory {
-        val declarations = ktFile.declarations
-        val classesOrObjects = declarations.filterIsInstance<KtClassOrObject>()
-
-        // If the file contains exactly one top-level class or object declaration
-        if (classesOrObjects.size == 1) {
-            return classifyClassOrObject(classesOrObjects[0])
+        if (!ktFile.isValid) {
+            return JavaTypeCategory.KOTLIN_FILE
         }
 
-        // If the file contains multiple declarations or only top-level functions/properties
+        // Fast zero-allocation scan for top-level classes/objects
+        var singleClassOrObject: KtClassOrObject? = null
+        var classCount = 0
+
+        for (decl in ktFile.declarations) {
+            if (decl is KtClassOrObject) {
+                classCount++
+                if (classCount == 1) {
+                    singleClassOrObject = decl
+                } else {
+                    // More than one class -> early exit
+                    break
+                }
+            }
+        }
+
+        if (classCount == 1 && singleClassOrObject != null) {
+            return classifyClassOrObject(singleClassOrObject)
+        }
+
         return JavaTypeCategory.KOTLIN_FILE
     }
 }

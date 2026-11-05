@@ -2,39 +2,37 @@ package com.plugin.projectview.bottomfiles
 
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectViewNode
+import com.intellij.ide.projectView.impl.nodes.FileNodeWithNestedFileNodes
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.NavigatableWithText
 
 /**
- * Universal wrapper for Project View nodes (e.g. Kotlin class/object nodes, Kotlin file nodes,
- * or any other [ProjectViewNode]) that assigns category sort weights and prefixes.
+ * Universal high-performance wrapper for Project View nodes (e.g. Kotlin class/object nodes)
+ * that assigns category sort weights and prefixes while transparently delegating all
+ * platform operations to the underlying node.
  *
- * Preserves:
- * - Native IntelliJ icons (I, C, O, E, @, K), badges, and VCS statuses.
- * - Selection stability, auto-scroll from source, and tree expansion state.
- * - Navigation shortcuts (Enter, F4, double-click).
- * - "Folders Always on Top" by delegating [getTypeSortWeight].
+ * Performance:
+ * - Pre-computes [cachedSortKey] at construction time for zero allocation during sorting.
+ * - Preserves native icons, badges, VCS markers, selection, navigation, and member drill-down.
  */
 class CategorizedNodeWrapper(
     project: Project,
     val delegate: ProjectViewNode<*>,
     val category: JavaTypeCategory,
-    val sortKeyName: String
+    sortKeyName: String
 ) : ProjectViewNode<Any>(
     project,
     delegate.value ?: Any(),
     delegate.settings
-), NavigatableWithText {
+), NavigatableWithText, FileNodeWithNestedFileNodes {
 
-    override fun getWeight(): Int {
-        return category.weight
-    }
+    private val cachedSortKey: String = "${category.sortPrefix}$sortKeyName"
 
-    override fun getSortKey(): Comparable<*>? {
-        return "${category.sortPrefix}$sortKeyName"
-    }
+    override fun getWeight(): Int = category.weight
+
+    override fun getSortKey(): Comparable<*>? = cachedSortKey
 
     override fun update(presentation: PresentationData) {
         delegate.update(presentation)
@@ -56,13 +54,9 @@ class CategorizedNodeWrapper(
         return delegate.virtualFile
     }
 
-    override fun canNavigate(): Boolean {
-        return delegate.canNavigate()
-    }
+    override fun canNavigate(): Boolean = delegate.canNavigate()
 
-    override fun canNavigateToSource(): Boolean {
-        return delegate.canNavigateToSource()
-    }
+    override fun canNavigateToSource(): Boolean = delegate.canNavigateToSource()
 
     override fun navigate(requestFocus: Boolean) {
         delegate.navigate(requestFocus)
@@ -78,5 +72,19 @@ class CategorizedNodeWrapper(
 
     override fun getTitle(): String? {
         return delegate.title
+    }
+
+    override fun getComment(): String? {
+        return delegate.comment
+    }
+
+    override fun isAlwaysExpand(): Boolean = delegate.isAlwaysExpand
+
+    override fun isAlwaysShowPlus(): Boolean = delegate.isAlwaysShowPlus
+
+    override fun expandOnDoubleClick(): Boolean = delegate.expandOnDoubleClick()
+
+    override fun getNestedFileNodes(): Collection<AbstractTreeNode<*>> {
+        return (delegate as? FileNodeWithNestedFileNodes)?.nestedFileNodes ?: emptyList()
     }
 }

@@ -6,16 +6,18 @@ import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ClassTreeNode
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import java.util.ArrayList
+import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Intercepts Project Tool Window child nodes and organizes them into categorized groups
- * for both Java and Kotlin projects:
+ * High-performance, zero-stutter Project Tool Window tree structure provider
+ * that organizes Java and Kotlin elements into categorized groups:
  * 1. Folders remain at the top (handled natively by IntelliJ)
  * 2. Interfaces (Java, Kotlin, Sealed)
  * 3. Abstract Classes (Java, Kotlin, Sealed)
@@ -26,12 +28,27 @@ import java.util.ArrayList
  * 8. Enums (Java enums, Kotlin enum classes)
  * 9. Annotations (Java annotations, Kotlin annotation classes)
  * 10. Kotlin Files (Kotlin files with top-level functions/properties)
- * 11. Other Files (Non-code / resource files grouped by extension: .gradle.kts, .json, .properties, .sql, .xml, .yml)
+ * 11. Other Files (Non-code / resource files grouped by extension)
  * 12. Bottom Files (package-info.java) strictly at the very bottom
  *
- * Implements [DumbAware] so tree rendering remains fast and active during background indexing.
+ * Performance Guarantees:
+ * - Zero Allocation Fast-Path: Returns immediately if all nodes are already categorized or are directories.
+ * - Cooperative Cancellation: Invokes [ProgressManager.checkCanceled] to keep UI responsive.
+ * - Pre-computed Sort Keys: All sort keys are cached once at node creation, eliminating string allocation during sorting.
+ * - Dumb-Mode Resilience: Implements [DumbAware] with safe exception handling so indexing is never interrupted.
  */
 class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
+
+    companion object {
+        // Cache for uppercase extension prefixes to prevent repeated string allocations
+        private val EXTENSION_PREFIX_CACHE = ConcurrentHashMap<String, String>()
+
+        @JvmStatic
+        private fun getExtensionPrefix(ext: String): String {
+            if (ext.isEmpty()) return ""
+            return EXTENSION_PREFIX_CACHE.computeIfAbsent(ext) { "${it.uppercase()}_" }
+        }
+    }
 
     override fun modify(
         parent: AbstractTreeNode<*>,
@@ -42,26 +59,37 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
             return children
         }
 
-        // --- FAST PATH: ZERO ALLOCATIONS IF ONLY DIRECTORIES ARE PRESENT ---
-        var hasCategorizableNodes = false
+        // --- FAST PATH: ZERO ALLOCATIONS IF NO NODES REQUIRE CATEGORIZATION ---
+        var hasUnprocessedNodes = false
         for (child in children) {
-            if (child is ProjectViewNode<*> && child.getTypeSortWeight(false) == 0) {
-                hasCategorizableNodes = true
-                break
+            // Already wrapped nodes
+            if (child is BottomPsiFileNode || child is CategorizedClassTreeNode || 
+                child is CategorizedPsiFileNode || child is CategorizedNodeWrapper) {
+                continue
             }
+            // Directory / folder node (handled by platform for "Folders Always on Top")
+            if (child !is ProjectViewNode<*> || child.getTypeSortWeight(false) != 0) {
+                continue
+            }
+            hasUnprocessedNodes = true
+            break
         }
-        if (!hasCategorizableNodes) {
+
+        if (!hasUnprocessedNodes) {
             return children
         }
 
-        // --- SLOW PATH: WRAP AND CATEGORIZE NODES ---
+        // --- SLOW PATH: WRAP AND CATEGORIZE UNWRAPPED NODES ---
         val effectiveSettings = settings ?: ViewSettings.DEFAULT
         val modifiedChildren = ArrayList<AbstractTreeNode<*>>(children.size)
 
         for (child in children) {
+            ProgressManager.checkCanceled()
+
             when {
                 // Already wrapped nodes
-                child is BottomPsiFileNode || child is CategorizedClassTreeNode || child is CategorizedPsiFileNode || child is CategorizedNodeWrapper -> {
+                child is BottomPsiFileNode || child is CategorizedClassTreeNode || 
+                child is CategorizedPsiFileNode || child is CategorizedNodeWrapper -> {
                     modifiedChildren.add(child)
                 }
 
@@ -104,7 +132,7 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
                             val category = resolveCategoryForFile(psiFile)
                             val ext = child.virtualFile?.extension ?: ""
                             val sortKey = if (category == JavaTypeCategory.OTHER_FILE && ext.isNotEmpty()) {
-                                "${category.sortPrefix}${ext.uppercase()}_$fileName"
+                                "${category.sortPrefix}${getExtensionPrefix(ext)}$fileName"
                             } else {
                                 "${category.sortPrefix}$fileName"
                             }

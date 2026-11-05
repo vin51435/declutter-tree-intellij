@@ -21,6 +21,8 @@ object JavaTypeClassifier {
         } catch (_: IndexNotReadyException) {
             // During indexing / dumb mode, fall back safely to standard class
             JavaTypeCategory.CLASS
+        } catch (_: Throwable) {
+            JavaTypeCategory.CLASS
         }
     }
 
