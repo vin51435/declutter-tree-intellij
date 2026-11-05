@@ -4,15 +4,16 @@
     <vendor url="https://github.com/vin51435/declutter-tree-intellij">Vin</vendor>
 
     <description><![CDATA[
-        <p>Declutter Tree customizes the Project View file ordering in IntelliJ IDEA. It keeps folders on top, groups Java files by declaration type, and moves metadata files like <code>package-info.java</code> to the bottom of their directory.</p>
+        <p>Declutter Tree customizes the Project View file ordering in IntelliJ IDEA. It keeps folders on top, groups Java and Kotlin files by declaration type, and lets you anchor specific files to the top or bottom of any directory.</p>
 
         <h3>Features</h3>
         <ul>
-            <li><b>Bottom file anchoring:</b> Places designated files (such as <code>package-info.java</code>) at the very bottom of each directory, below regular files.</li>
             <li><b>Folders on top:</b> Keeps directories pinned above files in all view modes.</li>
-            <li><b>Type-based ordering:</b> Groups Java files by structure: Interfaces &rarr; Abstract Classes &rarr; Classes &rarr; Records &rarr; Enums &rarr; Annotations.</li>
+            <li><b>Top file anchoring:</b> Pin specific files (such as <code>README.md</code> or <code>module-info.java</code>) directly beneath folders, above all other files.</li>
+            <li><b>Type-based ordering:</b> Groups code files by structure: Interfaces &rarr; Abstract Classes &rarr; Classes &rarr; Records &rarr; Enums &rarr; Annotations.</li>
             <li><b>Alphabetical sorting:</b> Keeps files within each group sorted alphabetically from A to Z.</li>
-            <li><b>Configurable:</b> Manage custom bottom filenames and toggle sorting options in <code>Settings &rarr; Appearance &amp; Behavior &rarr; Declutter Tree</code>.</li>
+            <li><b>Bottom file anchoring:</b> Pushes designated files (such as <code>package-info.java</code>) to the very bottom of each directory, below all regular files.</li>
+            <li><b>Configurable settings:</b> Customize which files are pinned to the top or bottom, and toggle type grouping in <code>Settings &rarr; Appearance &amp; Behavior &rarr; Declutter Tree</code>.</li>
         </ul>
 
         <h3>Performance</h3>

@@ -3,6 +3,9 @@
 # Modern IntelliJ Platform SDK & Gradle Open-Source Configuration
 # ==============================================================================
 
+# Demo project directory
+demo-project/
+
 # Gradle build output, daemon, and caches
 .gradle/
 build/

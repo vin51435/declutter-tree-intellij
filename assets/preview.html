@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Declutter Tree - Before & After Comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111214;
+      --card-bg: #1e1f22;
+      --header-bg: #25272b;
+      --border: #2b2d30;
+      --text: #bcbec4;
+      --text-highlight: #ffffff;
+      --text-muted: #6f737a;
+      --folder-blue: #4d78cc;
+      --class-blue: #3574f0;
+      --interface-blue: #388bfd;
+      --record-green: #2da44e;
+      --enum-orange: #bf8700;
+      --annotation-yellow: #c29438;
+      --danger-red: #f85149;
+      --success-green: #3fb950;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 40px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      max-width: 800px;
+    }
+    .header h1 {
+      color: #fff;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
+    }
+
+    .panel-header {
+      background: var(--header-bg);
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-title {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-before {
+      background: rgba(248, 81, 73, 0.15);
+      color: var(--danger-red);
+      border: 1px solid rgba(248, 81, 73, 0.4);
+    }
+    .badge-after {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--success-green);
+      border: 1px solid rgba(63, 185, 80, 0.4);
+    }
+
+    .tree {
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .tree-package {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #dfe1e5;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .tree-items {
+      padding-left: 20px;
+      border-left: 1px dashed var(--border);
+      margin-left: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .node {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .node:hover {
+      background: #2b2d30;
+    }
+    .node-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .node-name {
+      color: var(--text);
+    }
+    .node-name.active {
+      color: var(--text-highlight);
+      font-weight: 600;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .icon.square {
+      border-radius: 3px;
+    }
+    .icon-folder { background: transparent; color: var(--folder-blue); font-size: 13px; }
+    .icon-interface { background: var(--interface-blue); }
+    .icon-abstract { background: #2d6099; }
+    .icon-class { background: var(--class-blue); }
+    .icon-final { background: #58a6ff; }
+    .icon-record { background: var(--record-green); }
+    .icon-enum { background: var(--enum-orange); }
+    .icon-annotation { background: var(--annotation-yellow); }
+    .icon-yaml { background: #d29922; color: #1e1f22; }
+    .icon-sql { background: #8b949e; color: #1e1f22; }
+    .icon-doc { background: #58a6ff; color: #1e1f22; }
+
+    .tag {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+    }
+
+    .node-highlight-error {
+      background: rgba(248, 81, 73, 0.15);
+      border: 1px solid rgba(248, 81, 73, 0.4);
+    }
+    .node-highlight-error .node-name {
+      color: var(--danger-red);
+      font-weight: 600;
+    }
+    .node-highlight-error .tag {
+      color: var(--danger-red);
+      font-weight: 600;
+    }
+
+    .node-highlight-success {
+      background: rgba(63, 185, 80, 0.15);
+      border: 1px solid rgba(63, 185, 80, 0.4);
+    }
+    .node-highlight-success .node-name {
+      color: var(--success-green);
+      font-weight: 600;
+    }
+    .node-highlight-success .tag {
+      color: var(--success-green);
+      font-weight: 600;
+    }
+
+    .group-divider {
+      height: 1px;
+      background: #2b2d30;
+      margin: 6px 0;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Declutter Tree for IntelliJ IDEA</h1>
+    <p>Organize Java Project View files by declaration type & anchor auxiliary files to the bottom</p>
+  </div>
+
+  <div class="container">
+
+    <!-- BEFORE -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>Standard IntelliJ IDEA</span>
+        </div>
+        <span class="badge badge-before">Alphabetical Order</span>
+      </div>
+      <div class="tree">
+        <div class="tree-package">
+          <span class="icon-folder">📁</span>
+          <span>com.example.order</span>
+        </div>
+        <div class="tree-items">
+          <div class="node">
+            <div class="node-left">
+              <span class="icon-folder">📁</span>
+              <span class="node-name" style="font-weight:600">event</span>
+            </div>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-abstract">C</span><span class="node-name">AbstractOrderProcessor.java</span></div>
+            <span class="tag">Abstract Class</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon square icon-yaml">Y</span><span class="node-name">application.yml</span></div>
+            <span class="tag">Config</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-annotation">@</span><span class="node-name">AuditedOrder.java</span></div>
+            <span class="tag">Annotation</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-abstract">C</span><span class="node-name">BaseEntity.java</span></div>
+            <span class="tag">Abstract Class</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-class">C</span><span class="node-name">Customer.java</span></div>
+            <span class="tag">Class</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-class">M</span><span class="node-name">module-info.java</span></div>
+            <span class="tag">Module File</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-class">C</span><span class="node-name">Order.java</span></div>
+            <span class="tag">Class</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-interface">I</span><span class="node-name">OrderCalculator.java</span></div>
+            <span class="tag">Interface</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-record">R</span><span class="node-name">OrderReceipt.java</span></div>
+            <span class="tag">Record</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-interface">I</span><span class="node-name">OrderRepository.java</span></div>
+            <span class="tag">Interface</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-record">R</span><span class="node-name">OrderRequest.java</span></div>
+            <span class="tag">Record</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-final">C</span><span class="node-name">OrderSecurityManager.java</span></div>
+            <span class="tag">Final Class</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-class">C</span><span class="node-name">OrderService.java</span></div>
+            <span class="tag">Class</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-enum">E</span><span class="node-name">OrderStatus.java</span></div>
+            <span class="tag">Enum</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-record">R</span><span class="node-name">OrderSummary.java</span></div>
+            <span class="tag">Record</span>
+          </div>
+          <!-- STRANDED PACKAGE-INFO -->
+          <div class="node node-highlight-error">
+            <div class="node-left"><span class="icon square" style="background:var(--danger-red);">!</span><span class="node-name">package-info.java</span></div>
+            <span class="tag">⚠️ Stranded in Middle</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-interface">I</span><span class="node-name">PaymentGateway.java</span></div>
+            <span class="tag">Interface</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-enum">E</span><span class="node-name">PaymentMethod.java</span></div>
+            <span class="tag">Enum</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon square icon-doc">M</span><span class="node-name">README.md</span></div>
+            <span class="tag">Markdown</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-annotation">@</span><span class="node-name">RequirePermission.java</span></div>
+            <span class="tag">Annotation</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon square icon-sql">S</span><span class="node-name">schema.sql</span></div>
+            <span class="tag">Database</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>With Declutter Tree Plugin</span>
+        </div>
+        <span class="badge badge-after">Structured &amp; Grouped</span>
+      </div>
+      <div class="tree">
+        <div class="tree-package">
+          <span class="icon-folder">📁</span>
+          <span>com.example.order</span>
+        </div>
+        <div class="tree-items">
+          <!-- Folders -->
+          <div class="node">
+            <div class="node-left"><span class="icon-folder">📁</span><span class="node-name" style="font-weight:600">event</span></div>
+            <span class="tag" style="color:var(--folder-blue);">Folders Top</span>
+          </div>
+          
+          <div class="group-divider"></div>
+
+          <!-- Pinned Top -->
+          <div class="node">
+            <div class="node-left"><span class="icon square icon-doc">M</span><span class="node-name">README.md</span></div>
+            <span class="tag" style="color:#58a6ff;">Pinned Top</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-class">M</span><span class="node-name">module-info.java</span></div>
+            <span class="tag" style="color:#58a6ff;">Pinned Top</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Interfaces -->
+          <div class="node">
+            <div class="node-left"><span class="icon icon-interface">I</span><span class="node-name active">OrderCalculator.java</span></div>
+            <span class="tag" style="color:var(--interface-blue);">1. Interfaces</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-interface">I</span><span class="node-name active">OrderRepository.java</span></div>
+            <span class="tag" style="color:var(--interface-blue);">1. Interfaces</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-interface">I</span><span class="node-name active">PaymentGateway.java</span></div>
+            <span class="tag" style="color:var(--interface-blue);">1. Interfaces</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Abstract Classes -->
+          <div class="node">
+            <div class="node-left"><span class="icon icon-abstract">C</span><span class="node-name">AbstractOrderProcessor.java</span></div>
+            <span class="tag">2. Abstract Classes</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-abstract">C</span><span class="node-name">BaseEntity.java</span></div>
+            <span class="tag">2. Abstract Classes</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Classes -->
+          <div class="node">
+            <div class="node-left"><span class="icon icon-class">C</span><span class="node-name">Customer.java</span></div>
+            <span class="tag">3. Classes</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-class">C</span><span class="node-name">Order.java</span></div>
+            <span class="tag">3. Classes</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-class">C</span><span class="node-name">OrderService.java</span></div>
+            <span class="tag">3. Classes</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Final Classes -->
+          <div class="node">
+            <div class="node-left"><span class="icon icon-final">C</span><span class="node-name">OrderSecurityManager.java</span></div>
+            <span class="tag">4. Final Classes</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Records -->
+          <div class="node">
+            <div class="node-left"><span class="icon icon-record">R</span><span class="node-name">OrderReceipt.java</span></div>
+            <span class="tag">5. Records</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-record">R</span><span class="node-name">OrderRequest.java</span></div>
+            <span class="tag">5. Records</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-record">R</span><span class="node-name">OrderSummary.java</span></div>
+            <span class="tag">5. Records</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Enums -->
+          <div class="node">
+            <div class="node-left"><span class="icon icon-enum">E</span><span class="node-name">OrderStatus.java</span></div>
+            <span class="tag">6. Enums</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-enum">E</span><span class="node-name">PaymentMethod.java</span></div>
+            <span class="tag">6. Enums</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Annotations -->
+          <div class="node">
+            <div class="node-left"><span class="icon icon-annotation">@</span><span class="node-name">AuditedOrder.java</span></div>
+            <span class="tag">7. Annotations</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon icon-annotation">@</span><span class="node-name">RequirePermission.java</span></div>
+            <span class="tag">7. Annotations</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Resources -->
+          <div class="node">
+            <div class="node-left"><span class="icon square icon-yaml">Y</span><span class="node-name">application.yml</span></div>
+            <span class="tag">8. Resources</span>
+          </div>
+          <div class="node">
+            <div class="node-left"><span class="icon square icon-sql">S</span><span class="node-name">schema.sql</span></div>
+            <span class="tag">8. Resources</span>
+          </div>
+
+          <div class="group-divider"></div>
+
+          <!-- Pinned Bottom -->
+          <div class="node node-highlight-success">
+            <div class="node-left"><span class="icon square" style="background:var(--success-green);">⚓</span><span class="node-name">package-info.java</span></div>
+            <span class="tag">⚓ Pinned to Bottom</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
