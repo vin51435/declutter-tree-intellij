@@ -43,8 +43,9 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = properties("platformSinceBuild")
-            // untilBuild is intentionally omitted so the plugin is forward-compatible
-            // with all versions >= 242 (2024.2+, 2024.3+, 2025.x, 2026.x, and Android Studio)
+            // JetBrains standard: unsetting untilBuild allows the plugin to be compatible with all current
+            // and future IDE versions (e.g. 242, 243, 251, 262+, and Android Studio)
+            untilBuild = provider { null }
         }
     }
 
@@ -64,6 +65,10 @@ intellijPlatform {
 }
 
 tasks {
+    patchPluginXml {
+        untilBuild = provider { null }
+    }
+
     test {
         useJUnitPlatform()
     }
