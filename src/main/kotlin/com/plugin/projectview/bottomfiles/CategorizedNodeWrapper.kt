@@ -35,7 +35,11 @@ class CategorizedNodeWrapper(
     override fun getSortKey(): Comparable<*>? = cachedSortKey
 
     override fun update(presentation: PresentationData) {
-        delegate.update(presentation)
+        delegate.update()
+        presentation.copyFrom(delegate.presentation)
+        if (presentation.presentableText.isNullOrEmpty()) {
+            presentation.presentableText = delegate.name ?: delegate.value?.toString() ?: ""
+        }
     }
 
     override fun getChildren(): Collection<AbstractTreeNode<*>> {
@@ -72,10 +76,6 @@ class CategorizedNodeWrapper(
 
     override fun getTitle(): String? {
         return delegate.title
-    }
-
-    override fun getComment(): String? {
-        return delegate.comment
     }
 
     override fun isAlwaysExpand(): Boolean = delegate.isAlwaysExpand
