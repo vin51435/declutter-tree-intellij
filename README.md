@@ -1,6 +1,12 @@
 # Declutter Tree
 
-Intelligent Project View file organization for IntelliJ IDEA. Groups Java elements by declaration type and positions auxiliary metadata files (such as `package-info.java`) at the bottom of directories.
+Intelligent Project View file organization for IntelliJ IDEA. Groups code files by declaration type and lets you anchor specific files to the top or bottom of directories.
+
+---
+
+## Visual Comparison
+
+![Declutter Tree Before and After Comparison](assets/before-after-comparison.svg)
 
 ---
 
@@ -10,7 +16,8 @@ In standard IntelliJ IDEA projects, files are sorted strictly alphabetically. Au
 
 Declutter Tree provides a clean, predictable sorting hierarchy:
 1. **Directories on top:** Folder structure remains untouched at the top of the directory.
-2. **Type-based grouping:** Java files are grouped by declaration kind:
+2. **Top file anchoring:** Pin high-priority files (like `README.md` or `module-info.java`) directly beneath folders, above code files.
+3. **Type-based grouping:** Java and Kotlin files are grouped by declaration kind:
    - Interfaces
    - Abstract Classes
    - Classes
@@ -18,9 +25,9 @@ Declutter Tree provides a clean, predictable sorting hierarchy:
    - Records
    - Enums
    - Annotations
-3. **Alphabetical sorting:** Elements within each group remain sorted A-Z.
-4. **Bottom file anchoring:** Auxiliary files like `package-info.java` are pushed to the bottom.
-5. **Configurable settings:** Custom bottom files and sorting rules can be configured in `Settings -> Appearance & Behavior -> Declutter Tree`.
+4. **Alphabetical sorting:** Elements within each group remain sorted A-Z.
+5. **Bottom file anchoring:** Auxiliary files like `package-info.java` are pushed to the very bottom.
+6. **Configurable settings:** Custom top files, bottom files, and type grouping can be customized in `Settings -> Appearance & Behavior -> Declutter Tree`.
 
 ---
 
@@ -29,28 +36,68 @@ Declutter Tree provides a clean, predictable sorting hierarchy:
 ### Default IntelliJ Sorting
 ```text
 com.example.order/
-├── service/
+├── event/
+├── AbstractOrderProcessor.java   (Abstract Class)
+├── application.yml               (Config)
+├── AuditedOrder.java             (Annotation)
+├── BaseEntity.java               (Abstract Class)
+├── Customer.java                 (Class)
+├── module-info.java              (Module File)
 ├── Order.java                    (Class)
-├── OrderCancelledEvent.java      (Record)
-├── OrderDTO.java                 (Class)
+├── OrderCalculator.java          (Interface)
+├── OrderReceipt.java             (Record)
 ├── OrderRepository.java          (Interface)
+├── OrderRequest.java             (Record)
+├── OrderSecurityManager.java     (Final Class)
+├── OrderService.java             (Class)
 ├── OrderStatus.java              (Enum)
-├── package-info.java             (Metadata file in the middle)
-└── ValidOrder.java               (Annotation)
+├── OrderSummary.java             (Record)
+├── package-info.java             ⚠️ (Metadata stranded in the middle!)
+├── PaymentGateway.java           (Interface)
+├── PaymentMethod.java            (Enum)
+├── README.md                     (Markdown)
+├── RequirePermission.java        (Annotation)
+└── schema.sql                    (Database)
 ```
 
 ### With Declutter Tree
 ```text
 com.example.order/
-├── service/                   (Directories on top)
-├── OrderRepository.java       (1. Interfaces)
-├── Order.java                 (2. Classes)
-├── OrderDTO.java              (2. Classes, sorted A-Z)
-├── OrderCancelledEvent.java   (3. Records)
-├── OrderStatus.java           (4. Enums)
-├── ValidOrder.java            (5. Annotations)
-└── package-info.java          (6. Anchored to the bottom)
+├── event/                        (📁 Folders on top)
+├── README.md                     (📌 Pinned Top Files)
+├── module-info.java
+├── OrderCalculator.java          (1. Interfaces)
+├── OrderRepository.java
+├── PaymentGateway.java
+├── AbstractOrderProcessor.java   (2. Abstract Classes)
+├── BaseEntity.java
+├── Customer.java                 (3. Classes)
+├── Order.java
+├── OrderService.java
+├── OrderSecurityManager.java     (4. Final Classes)
+├── OrderReceipt.java             (5. Records)
+├── OrderRequest.java
+├── OrderSummary.java
+├── OrderStatus.java              (6. Enums)
+├── PaymentMethod.java
+├── AuditedOrder.java             (7. Annotations)
+├── RequirePermission.java
+├── application.yml               (8. Resources / Config)
+├── schema.sql
+└── package-info.java             (⚓ Pinned to Bottom)
 ```
+
+---
+
+## Demo Project
+
+A complete, believable enterprise Java demo project is included in the repository at [`demo-project/`](demo-project).
+
+You can open it directly in IntelliJ IDEA or run it in the plugin development sandbox:
+```bash
+./gradlew runIde
+```
+Then open `demo-project/` to see the live before and after comparison in IntelliJ IDEA's Project View.
 
 ---
 
