@@ -4,15 +4,28 @@
     <vendor url="https://github.com/vin51435/declutter-tree-intellij">Vin</vendor>
 
     <description><![CDATA[
-        <p>A high-performance IntelliJ Platform plugin that organizes Java elements in the Project Tool Window
-        by their type (Interfaces, Abstract Classes, Classes, Final Classes, Records, Enums, Annotations)
-        while strictly keeping designated files (such as <code>package-info.java</code>) at the very bottom.</p>
+        <p><b>Declutter Tree</b> brings clean visual organization to your IntelliJ IDEA Project View by anchoring auxiliary metadata files to the bottom of folders and logically grouping Java elements by type.</p>
+
+        <h3>🎯 The Problem It Solves</h3>
+        <p>In standard IntelliJ IDEA projects, files are sorted purely alphabetically. Files like <code>package-info.java</code> end up jumbled right in the middle of your core business classes. <b>Declutter Tree</b> restores clean visual hierarchy to your project tree with zero configuration required.</p>
+
+        <h3>✨ Key Features</h3>
         <ul>
-            <li><strong>Folders Always on Top:</strong> Directories remain unaffected and stay at the top.</li>
-            <li><strong>Type-Based Grouping:</strong> Interfaces, Classes, Enums, Records, etc. are grouped together according to their IntelliJ icon.</li>
-            <li><strong>Alphabetical Ordering:</strong> All files within each group remain strictly sorted A-Z.</li>
-            <li><strong>Bottom Files:</strong> <code>package-info.java</code> is always positioned at the very bottom.</li>
-            <li><strong>Zero UI Latency:</strong> Stub-backed checks and dumb-mode resilience prevent any UI lag.</li>
+            <li><b>⚓ Bottom File Anchoring:</b> Automatically forces designated auxiliary files (such as <code>package-info.java</code>) to the very bottom of their folder, below all standard files.</li>
+            <li><b>📁 Folders Stay on Top:</b> Directory hierarchy remains completely unaffected and stays pinned at the top.</li>
+            <li><b>🏷️ Clean Type-Based Grouping:</b> Organizes Java elements logically by their declaration kind:
+                <b>Interfaces</b> &rarr; <b>Abstract Classes</b> &rarr; <b>Classes</b> &rarr; <b>Records</b> &rarr; <b>Enums</b> &rarr; <b>Annotations</b>.
+            </li>
+            <li><b>🔤 Alphabetical Precision:</b> All files within each group remain strictly sorted A&ndash;Z.</li>
+            <li><b>⚙️ Fully Customizable:</b> Customize your preferred sorting order or add custom bottom files via <code>Settings &rarr; Appearance &amp; Behavior &rarr; Declutter Tree</code>.</li>
+        </ul>
+
+        <h3>⚡ Built for Speed (Zero UI Lag)</h3>
+        <ul>
+            <li><b>EDT Protection:</b> Runs inside the tree rendering loop with minimal overhead, preventing UI stutter or dropped frames during scrolling.</li>
+            <li><b>O(1) Fast-Path:</b> Uses pre-compiled lookup sets and in-memory VirtualFile pointers without loading ASTs or hitting disk.</li>
+            <li><b>DumbAware:</b> Remains fully functional and fast during background project indexing.</li>
+            <li><b>Tree State Preservation:</b> Retains Git status badges, bookmarks, breadcrumbs, and selection state without flickering.</li>
         </ul>
     ]]></description>
 
