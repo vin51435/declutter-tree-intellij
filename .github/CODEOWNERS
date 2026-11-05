@@ -1,0 +1,25 @@
+# ==============================================================================
+# Declutter Tree (CODEOWNERS)
+#
+# GitHub Code Owners mechanism for protecting IntelliJ plugin integrity:
+# 1. Enforces mandatory review by @vin51435 on all Pull Requests.
+# 2. Prevents unauthorized modification of plugin descriptors, extension points,
+#    publishing configurations, and dependency trees.
+# ==============================================================================
+
+# Default fallback owner for the entire repository
+* @vin51435
+
+# Critical build & platform configurations (Security boundary)
+/build.gradle.kts @vin51435
+/settings.gradle.kts @vin51435
+/gradle.properties @vin51435
+/gradle/ @vin51435
+/gradlew @vin51435
+/gradlew.bat @vin51435
+
+# Plugin descriptor & extension point declarations
+/src/main/resources/META-INF/plugin.xml @vin51435
+
+# GitHub Actions & CI/CD workflows (protects Marketplace publishing secrets)
+/.github/ @vin51435

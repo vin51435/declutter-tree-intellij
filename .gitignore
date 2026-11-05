@@ -1,19 +1,52 @@
-# Project build and cache
+# ==============================================================================
+# Declutter Tree (.gitignore)
+# Modern IntelliJ Platform SDK & Gradle Open-Source Configuration
+# ==============================================================================
+
+# Gradle build output, daemon, and caches
 .gradle/
 build/
 out/
-.intellijPlatform/
 .kotlin/
+.intellijPlatform/
 
-# IntelliJ IDEA project files
+# Local Gradle overrides & machine-specific configs
+local.properties
+gradle.properties.local
+
+# JetBrains IDE files & runtime caches
 .idea/
 *.iml
 *.ipr
 *.iws
+.idea_modules/
 
-# OS files
+# JetBrains Plugin Sandbox & test ide roots
+idea-sandbox/
+build/idea-sandbox/
+
+# Signing certificates & marketplace publishing keys (NEVER commit secrets)
+*.jks
+*.keystore
+*.key
+*.pem
+private.pem
+certificate.pem
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Log files
+# Java & JVM crash/heap dumps
+*.hprof
+hs_err_pid*.log
+replay_pid*.log
+
+# General logs
 *.log

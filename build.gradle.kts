@@ -37,8 +37,8 @@ intellijPlatform {
         version = properties("pluginVersion")
 
         vendor {
-            name = "Senior IntelliJ Platform Team"
-            url = "https://github.com/example/project-view-bottom-files"
+            name = "Vin"
+            url = "https://github.com/vin51435/declutter-tree-intellij"
         }
 
         ideaVersion {

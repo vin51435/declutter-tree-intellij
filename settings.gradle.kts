@@ -1,4 +1,4 @@
-rootProject.name = "project-view-bottom-files"
+rootProject.name = "declutter-tree-intellij"
 
 pluginManagement {
     repositories {

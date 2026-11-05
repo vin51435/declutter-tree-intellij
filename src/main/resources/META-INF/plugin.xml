@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>com.plugin.projectview.bottomfiles</id>
-    <name>Project View Bottom Files</name>
-    <vendor url="https://github.com/example/project-view-bottom-files">Senior IntelliJ Platform Team</vendor>
+    <id>com.github.vin51435.decluttertree</id>
+    <name>Declutter Tree</name>
+    <vendor url="https://github.com/vin51435/declutter-tree-intellij">Vin</vendor>
 
     <description><![CDATA[
         <p>A high-performance IntelliJ Platform plugin that organizes Java elements in the Project Tool Window
@@ -34,8 +34,8 @@
         <applicationConfigurable 
             parentId="appearance" 
             instance="com.plugin.projectview.bottomfiles.ProjectViewSortingConfigurable" 
-            id="com.plugin.projectview.bottomfiles.settings" 
-            displayName="Project View File Ordering"/>
+            id="com.github.vin51435.decluttertree.settings" 
+            displayName="Declutter Tree"/>
 
         <!-- 
             TreeStructureProvider intercepts Project View nodes.
