@@ -43,7 +43,8 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = properties("platformSinceBuild")
-            untilBuild = properties("platformUntilBuild")
+            // untilBuild is intentionally omitted so the plugin is forward-compatible
+            // with all versions >= 242 (2024.2+, 2024.3+, 2025.x, 2026.x, and Android Studio)
         }
     }
 
