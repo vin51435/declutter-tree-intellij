@@ -21,22 +21,21 @@ class BottomPsiFileNode(
 ) : PsiFileNode(project, value, viewSettings) {
 
     /**
-     * Macro-level category weight evaluated by GroupByTypeComparator.
-     * Returning a high integer places this node below standard files.
-     */
-    override fun getTypeSortWeight(sortByType: Boolean): Int {
-        return BottomFileConstants.BOTTOM_SORT_WEIGHT
-    }
-
-    /**
-     * Fallback weight for generic TreeStructure comparators.
+     * Weight evaluated by AlphaComparator (the primary sorting comparator in ProjectView).
+     * Standard files and classes have weight 20 (and default weight 30).
+     * Returning 1000 places this node strictly after all standard files and classes.
+     *
+     * IMPORTANT: We deliberately do NOT override getTypeSortWeight()! In IntelliJ's
+     * GroupByTypeComparator, any node with getTypeSortWeight() != 0 is classified as a
+     * directory/folder under "Folders Always on Top", which caused package-info.java to be
+     * pinned to the top. Inheriting getTypeSortWeight() = 0 preserves its file classification.
      */
     override fun getWeight(): Int {
         return BottomFileConstants.BOTTOM_SORT_WEIGHT
     }
 
     /**
-     * Lexicographical sort key used when "Sort by Type" is disabled.
+     * Lexicographical sort key used when "Sort by Name" is active.
      * Evaluated using fast in-memory VirtualFile name without triggering PSI read locks.
      */
     override fun getSortKey(): Comparable<*>? {

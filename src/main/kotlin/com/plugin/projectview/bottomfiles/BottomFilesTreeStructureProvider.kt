@@ -51,7 +51,9 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
         val modifiedChildren = ArrayList<AbstractTreeNode<*>>(children.size)
 
         for (child in children) {
-            if (child is PsiFileNode && isMatchingFileNode(child)) {
+            if (child is BottomPsiFileNode) {
+                modifiedChildren.add(child)
+            } else if (child is PsiFileNode && isMatchingFileNode(child)) {
                 val project = child.project
                 val psiFile = child.value
 
@@ -70,11 +72,12 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
     }
 
     /**
-     * Fast O(1) check using the in-memory VirtualFile name without triggering PSI read locks.
+     * Fast O(1) check using the in-memory VirtualFile or PsiFile name without triggering PSI read locks.
      */
-    private inline fun isMatchingFileNode(node: AbstractTreeNode<*>): Boolean {
+    private fun isMatchingFileNode(node: AbstractTreeNode<*>): Boolean {
+        if (node is BottomPsiFileNode) return true
         if (node !is PsiFileNode) return false
-        val virtualFile = node.virtualFile ?: return false
-        return BottomFileConstants.isBottomFile(virtualFile.name)
+        val fileName = node.virtualFile?.name ?: node.value?.name
+        return BottomFileConstants.isBottomFile(fileName)
     }
 }

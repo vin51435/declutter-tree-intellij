@@ -13,7 +13,8 @@ Because this code executes in the Project View tree rendering and node evaluatio
 2. **$O(1)$ Hash Lookups**:
    - Uses a pre-compiled `Set<String>` for immediate lookup instead of runtime string transformations or regex matching.
 3. **Dual-Mode Sorting Guarantee**:
-   - **"Folders Always on Top" & Type Sorting**: `BottomPsiFileNode` returns `BOTTOM_SORT_WEIGHT = 1000` via `getTypeSortWeight()`, ensuring directories stay on top, standard files stay in the middle, and bottom files sink to the end.
+   - **Weight Separation (`AlphaComparator`)**: `BottomPsiFileNode` returns `BOTTOM_SORT_WEIGHT = 1000` via `getWeight()`. Standard files and classes have weight `20` (and default `30`), guaranteeing that bottom files sort beneath all regular files and classes.
+   - **File Classification (`Folders Always on Top`)**: Inherits `getTypeSortWeight() = 0` so IntelliJ does not mistakenly classify the file as a directory under "Folders Always on Top".
    - **Pure Alphabetical Sorting**: `getSortKey()` returns `\uFFFF + filename`. `\uFFFF` is the terminal character of the Unicode Basic Multilingual Plane (BMP), guaranteeing that natural string comparison places the node after any ASCII or UTF-8 file name.
 4. **Stable Selection & VCS State**:
    - Subclasses `PsiFileNode` and preserves identity equality with the underlying `PsiFile`. File selection, cursor positioning, keyboard navigation, Git badges, and context menus remain 100% stable.

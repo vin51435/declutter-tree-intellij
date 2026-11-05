@@ -14,9 +14,9 @@ object BottomFileConstants {
     )
 
     /**
-     * High sorting weight for GroupByTypeComparator.
-     * Directories typically have weight 0 or 1; standard files have weight 0 or extension-sort keys.
-     * A weight of 1000 guarantees matching nodes are pushed beneath all regular files.
+     * High sorting weight evaluated by AlphaComparator (fallback for ProjectView node sorting).
+     * Standard files and ClassTreeNode elements have weight 20 (and default weight 30).
+     * A weight of 1000 guarantees matching nodes are sorted beneath all regular files and classes.
      */
     const val BOTTOM_SORT_WEIGHT: Int = 1_000
 
