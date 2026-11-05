@@ -26,6 +26,17 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <!-- Persistent Settings Service -->
+        <applicationService 
+            serviceImplementation="com.plugin.projectview.bottomfiles.ProjectViewSortingSettings"/>
+
+        <!-- Settings GUI under Appearance & Behavior -->
+        <applicationConfigurable 
+            parentId="appearance" 
+            instance="com.plugin.projectview.bottomfiles.ProjectViewSortingConfigurable" 
+            id="com.plugin.projectview.bottomfiles.settings" 
+            displayName="Project View File Ordering"/>
+
         <!-- 
             TreeStructureProvider intercepts Project View nodes.
             order="last" ensures this provider runs after Java, Kotlin, and nesting providers

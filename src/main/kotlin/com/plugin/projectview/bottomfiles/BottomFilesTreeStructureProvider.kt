@@ -17,19 +17,20 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * High-performance, zero-stutter Project Tool Window tree structure provider
- * that organizes Java and Kotlin elements into categorized groups:
+ * that organizes Java and Kotlin elements into configurable categorized groups:
  * 1. Folders remain at the top (handled natively by IntelliJ)
- * 2. Interfaces (Java, Kotlin, Sealed)
- * 3. Abstract Classes (Java, Kotlin, Sealed)
- * 4. Classes (Java normal, Kotlin normal, Data, Open)
- * 5. Final Classes (Java final)
- * 6. Objects (Kotlin singleton objects)
- * 7. Records (Java records)
- * 8. Enums (Java enums, Kotlin enum classes)
- * 9. Annotations (Java annotations, Kotlin annotation classes)
- * 10. Kotlin Files (Kotlin files with top-level functions/properties)
- * 11. Other Files (Non-code / resource files grouped by extension)
- * 12. Bottom Files (package-info.java) strictly at the very bottom
+ * 2. Pinned Top Files (e.g. README.md, module-info.java configured by user)
+ * 3. Interfaces (Java, Kotlin, Sealed)
+ * 4. Abstract Classes (Java, Kotlin, Sealed)
+ * 5. Classes (Java normal, Kotlin normal, Data, Open)
+ * 6. Final Classes (Java final)
+ * 7. Objects (Kotlin singleton objects)
+ * 8. Records (Java records)
+ * 9. Enums (Java enums, Kotlin enum classes)
+ * 10. Annotations (Java annotations, Kotlin annotation classes)
+ * 11. Kotlin Files (Kotlin files with top-level functions/properties)
+ * 12. Other Files (Non-code / resource files optionally grouped by extension)
+ * 13. Pinned Bottom Files (package-info.java) strictly at the very bottom
  *
  * Performance Guarantees:
  * - Zero Allocation Fast-Path: Returns immediately if all nodes are already categorized or are directories.
@@ -81,6 +82,7 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
 
         // --- SLOW PATH: WRAP AND CATEGORIZE UNWRAPPED NODES ---
         val effectiveSettings = settings ?: ViewSettings.DEFAULT
+        val sortingSettings = ProjectViewSortingSettings.getInstance()
         val modifiedChildren = ArrayList<AbstractTreeNode<*>>(children.size)
 
         for (child in children) {
@@ -103,16 +105,31 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
                     val project = child.project
                     val psiClass = child.psiClass
                     if (project != null && psiClass != null && psiClass.isValid) {
-                        val category = JavaTypeClassifier.classify(psiClass)
-                        modifiedChildren.add(
-                            CategorizedClassTreeNode(
-                                project = project,
-                                psiClassElement = psiClass,
-                                settings = effectiveSettings,
-                                nestedFileNodes = child.nestedFileNodes,
-                                category = category
+                        val fileName = child.virtualFile?.name ?: psiClass.containingFile?.name
+                        if (sortingSettings.isPinnedTop(fileName)) {
+                            modifiedChildren.add(
+                                CategorizedClassTreeNode(
+                                    project = project,
+                                    psiClassElement = psiClass,
+                                    settings = effectiveSettings,
+                                    nestedFileNodes = child.nestedFileNodes,
+                                    category = JavaTypeCategory.PINNED_TOP
+                                )
                             )
-                        )
+                        } else if (sortingSettings.enableTypeGrouping) {
+                            val category = JavaTypeClassifier.classify(psiClass)
+                            modifiedChildren.add(
+                                CategorizedClassTreeNode(
+                                    project = project,
+                                    psiClassElement = psiClass,
+                                    settings = effectiveSettings,
+                                    nestedFileNodes = child.nestedFileNodes,
+                                    category = category
+                                )
+                            )
+                        } else {
+                            modifiedChildren.add(child)
+                        }
                     } else {
                         modifiedChildren.add(child)
                     }
@@ -125,13 +142,24 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
                     val psiFile = child.value
 
                     if (project != null && psiFile != null && psiFile.isValid) {
-                        if (BottomFileConstants.isBottomFile(fileName)) {
+                        if (sortingSettings.isPinnedBottom(fileName)) {
                             // Designated bottom files (e.g. package-info.java)
                             modifiedChildren.add(BottomPsiFileNode(project, psiFile, effectiveSettings))
-                        } else {
+                        } else if (sortingSettings.isPinnedTop(fileName)) {
+                            // Designated pinned top files (e.g. README.md, module-info.java)
+                            modifiedChildren.add(
+                                CategorizedPsiFileNode(
+                                    project = project,
+                                    value = psiFile,
+                                    viewSettings = effectiveSettings,
+                                    category = JavaTypeCategory.PINNED_TOP,
+                                    customSortKey = "${JavaTypeCategory.PINNED_TOP.sortPrefix}$fileName"
+                                )
+                            )
+                        } else if (sortingSettings.enableTypeGrouping) {
                             val category = resolveCategoryForFile(psiFile)
                             val ext = child.virtualFile?.extension ?: ""
-                            val sortKey = if (category == JavaTypeCategory.OTHER_FILE && ext.isNotEmpty()) {
+                            val sortKey = if (sortingSettings.groupResourcesByExtension && category == JavaTypeCategory.OTHER_FILE && ext.isNotEmpty()) {
                                 "${category.sortPrefix}${getExtensionPrefix(ext)}$fileName"
                             } else {
                                 "${category.sortPrefix}$fileName"
@@ -139,6 +167,8 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
                             modifiedChildren.add(
                                 CategorizedPsiFileNode(project, psiFile, effectiveSettings, category, sortKey)
                             )
+                        } else {
+                            modifiedChildren.add(child)
                         }
                     } else {
                         modifiedChildren.add(child)
@@ -150,12 +180,21 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
                     val project = child.project
                     val value = child.value
                     if (project != null && value != null) {
-                        val category = resolveCategoryForElement(value)
-                        if (category != null) {
-                            val name = child.name ?: (value as? PsiNamedElement)?.name ?: ""
+                        val fileName = child.virtualFile?.name ?: child.name ?: (value as? PsiNamedElement)?.name ?: ""
+                        if (sortingSettings.isPinnedTop(fileName)) {
                             modifiedChildren.add(
-                                CategorizedNodeWrapper(project, child, category, name)
+                                CategorizedNodeWrapper(project, child, JavaTypeCategory.PINNED_TOP, fileName)
                             )
+                        } else if (sortingSettings.enableTypeGrouping) {
+                            val category = resolveCategoryForElement(value)
+                            if (category != null) {
+                                val name = child.name ?: (value as? PsiNamedElement)?.name ?: ""
+                                modifiedChildren.add(
+                                    CategorizedNodeWrapper(project, child, category, name)
+                                )
+                            } else {
+                                modifiedChildren.add(child)
+                            }
                         } else {
                             modifiedChildren.add(child)
                         }

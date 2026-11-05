@@ -9,6 +9,7 @@ class JavaTypeCategoryTest {
     @Test
     fun `test weight ordering strictly follows desired category hierarchy`() {
         val categories = listOf(
+            JavaTypeCategory.PINNED_TOP,
             JavaTypeCategory.INTERFACE,
             JavaTypeCategory.ABSTRACT_CLASS,
             JavaTypeCategory.CLASS,
@@ -35,6 +36,7 @@ class JavaTypeCategoryTest {
     @Test
     fun `test sort prefix ordering strictly follows desired category hierarchy`() {
         val categories = listOf(
+            JavaTypeCategory.PINNED_TOP,
             JavaTypeCategory.INTERFACE,
             JavaTypeCategory.ABSTRACT_CLASS,
             JavaTypeCategory.CLASS,
@@ -59,8 +61,10 @@ class JavaTypeCategoryTest {
     }
 
     @Test
-    fun `test composite sort key groups Java and Kotlin types together and preserves alphabetical ordering within groups`() {
+    fun `test composite sort key groups pinned top, language types, resources, and bottom files`() {
         val items = listOf(
+            "${JavaTypeCategory.PINNED_TOP.sortPrefix}README.md",
+            "${JavaTypeCategory.PINNED_TOP.sortPrefix}module-info.java",
             "${JavaTypeCategory.INTERFACE.sortPrefix}UserRepository",
             "${JavaTypeCategory.INTERFACE.sortPrefix}AuthService",
             "${JavaTypeCategory.ABSTRACT_CLASS.sortPrefix}BaseEntity",
@@ -88,48 +92,52 @@ class JavaTypeCategoryTest {
         val sorted = items.sorted()
 
         val expectedOrder = listOf(
-            // 1. Interfaces (sorted A-Z)
+            // 1. Pinned Top Files (sorted A-Z)
+            "${JavaTypeCategory.PINNED_TOP.sortPrefix}README.md",
+            "${JavaTypeCategory.PINNED_TOP.sortPrefix}module-info.java",
+
+            // 2. Interfaces (sorted A-Z)
             "${JavaTypeCategory.INTERFACE.sortPrefix}AuthService",
             "${JavaTypeCategory.INTERFACE.sortPrefix}UserRepository",
 
-            // 2. Abstract Classes (sorted A-Z)
+            // 3. Abstract Classes (sorted A-Z)
             "${JavaTypeCategory.ABSTRACT_CLASS.sortPrefix}AbstractHandler",
             "${JavaTypeCategory.ABSTRACT_CLASS.sortPrefix}BaseEntity",
 
-            // 3. Classes (sorted A-Z)
+            // 4. Classes (sorted A-Z)
             "${JavaTypeCategory.CLASS.sortPrefix}ApplicationStartupListener",
             "${JavaTypeCategory.CLASS.sortPrefix}UserServiceImpl",
 
-            // 4. Final Classes (sorted A-Z)
+            // 5. Final Classes (sorted A-Z)
             "${JavaTypeCategory.FINAL_CLASS.sortPrefix}SystemConstants",
 
-            // 5. Objects (Kotlin singleton objects, sorted A-Z)
+            // 6. Objects (Kotlin singleton objects, sorted A-Z)
             "${JavaTypeCategory.OBJECT.sortPrefix}AppConfig",
             "${JavaTypeCategory.OBJECT.sortPrefix}NetworkConstants",
 
-            // 6. Records (sorted A-Z)
+            // 7. Records (sorted A-Z)
             "${JavaTypeCategory.RECORD.sortPrefix}CreateUserRequest",
             "${JavaTypeCategory.RECORD.sortPrefix}UserResponse",
 
-            // 7. Enums (sorted A-Z)
+            // 8. Enums (sorted A-Z)
             "${JavaTypeCategory.ENUM.sortPrefix}AccountStatus",
             "${JavaTypeCategory.ENUM.sortPrefix}UserRole",
 
-            // 8. Annotations (sorted A-Z)
+            // 9. Annotations (sorted A-Z)
             "${JavaTypeCategory.ANNOTATION.sortPrefix}Audited",
             "${JavaTypeCategory.ANNOTATION.sortPrefix}Transactional",
 
-            // 9. Kotlin Files (top-level functions/properties, sorted A-Z)
+            // 10. Kotlin Files (top-level functions/properties, sorted A-Z)
             "${JavaTypeCategory.KOTLIN_FILE.sortPrefix}Extensions.kt",
             "${JavaTypeCategory.KOTLIN_FILE.sortPrefix}Utils.kt",
 
-            // 10. Other Files (grouped by extension, sorted A-Z)
+            // 11. Other Files (grouped by extension, sorted A-Z)
             "${JavaTypeCategory.OTHER_FILE.sortPrefix}JSON_openapi.json",
             "${JavaTypeCategory.OTHER_FILE.sortPrefix}PROPERTIES_application.properties",
             "${JavaTypeCategory.OTHER_FILE.sortPrefix}PROPERTIES_datasource.properties",
             "${JavaTypeCategory.OTHER_FILE.sortPrefix}SQL_schema.sql",
 
-            // 11. Bottom Files (strictly at the bottom)
+            // 12. Bottom Files (strictly at the bottom)
             "${JavaTypeCategory.BOTTOM_FILE.sortPrefix}package-info.java"
         )
 
@@ -141,6 +149,7 @@ class JavaTypeCategoryTest {
         val packageInfoKey = "${JavaTypeCategory.BOTTOM_FILE.sortPrefix}package-info.java"
 
         val sampleKeys = listOf(
+            "${JavaTypeCategory.PINNED_TOP.sortPrefix}README.md",
             "${JavaTypeCategory.INTERFACE.sortPrefix}ZZZ_Interface",
             "${JavaTypeCategory.CLASS.sortPrefix}ZZZ_Class",
             "${JavaTypeCategory.OBJECT.sortPrefix}ZZZ_Object",

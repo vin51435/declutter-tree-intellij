@@ -5,23 +5,25 @@ package com.plugin.projectview.bottomfiles
  *
  * Sorting Hierarchy:
  * 1. Folders / Directories (Always on Top via platform sort weight)
- * 2. Interfaces (icon (I): Java interface, Kotlin interface, sealed interface)
- * 3. Abstract Classes (icon (C) with abstract marker: Java abstract class, Kotlin abstract/sealed class)
- * 4. Classes (icon (C): Java normal class, Kotlin class, data class, open class)
- * 5. Final Classes (icon (C) with final badge: Java final class)
- * 6. Objects (icon (O): Kotlin singleton object declaration)
- * 7. Records (icon (R): Java record)
- * 8. Enums (icon (E): Java enum, Kotlin enum class)
- * 9. Annotations (icon @: Java annotation, Kotlin annotation class)
- * 10. Kotlin Files (icon K: Kotlin files with top-level functions/properties)
- * 11. Other Files (Non-code/resource files grouped by extension, e.g. .gradle.kts, .json, .properties, .sql, .xml, .yml)
- * 12. Bottom Files (e.g. package-info.java strictly at the bottom)
+ * 2. Pinned Top Files (e.g. README.md, module-info.java configured by user)
+ * 3. Interfaces (icon (I): Java interface, Kotlin interface, sealed interface)
+ * 4. Abstract Classes (icon (C) with abstract marker: Java abstract class, Kotlin abstract/sealed class)
+ * 5. Classes (icon (C): Java normal class, Kotlin class, data class, open class)
+ * 6. Final Classes (icon (C) with final badge: Java final class)
+ * 7. Objects (icon (O): Kotlin singleton object declaration)
+ * 8. Records (icon (R): Java record)
+ * 9. Enums (icon (E): Java enum, Kotlin enum class)
+ * 10. Annotations (icon @: Java annotation, Kotlin annotation class)
+ * 11. Kotlin Files (icon K: Kotlin files with top-level functions/properties)
+ * 12. Other Files (Non-code/resource files grouped by extension, e.g. .gradle.kts, .json, .properties, .sql, .xml, .yml)
+ * 13. Bottom Files (e.g. package-info.java strictly at the bottom)
  */
 enum class JavaTypeCategory(
     val displayName: String,
     val weight: Int,
     val sortPrefix: String
 ) {
+    PINNED_TOP("Pinned Top File", 50, "00_"),
     INTERFACE("Interface", 100, "01_"),
     ABSTRACT_CLASS("Abstract Class", 110, "02_"),
     CLASS("Class", 120, "03_"),

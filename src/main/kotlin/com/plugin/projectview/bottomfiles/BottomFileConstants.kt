@@ -1,17 +1,9 @@
 package com.plugin.projectview.bottomfiles
 
 /**
- * Constants and configuration for bottom file sorting.
+ * Constants and fallback configuration for bottom file sorting.
  */
 object BottomFileConstants {
-
-    /**
-     * Set of target file names that must be forced to the bottom of their parent directory.
-     * Pre-compiled Set ensures O(1) hash lookup with zero runtime overhead.
-     */
-    val TARGET_FILE_NAMES: Set<String> = hashSetOf(
-        "package-info.java"
-    )
 
     /**
      * High sorting weight evaluated by AlphaComparator (fallback for ProjectView node sorting).
@@ -29,11 +21,15 @@ object BottomFileConstants {
 
     /**
      * Checks if the given file name is designated as a bottom file.
-     * Executes in O(1) time without string manipulation or regex evaluation.
+     * Delegates to persistent user settings for dynamic configuration.
      */
     @JvmStatic
     fun isBottomFile(fileName: String?): Boolean {
         if (fileName == null) return false
-        return TARGET_FILE_NAMES.contains(fileName)
+        return try {
+            ProjectViewSortingSettings.getInstance().isPinnedBottom(fileName)
+        } catch (_: Throwable) {
+            fileName == "package-info.java"
+        }
     }
 }
