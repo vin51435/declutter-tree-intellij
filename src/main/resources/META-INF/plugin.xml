@@ -4,12 +4,15 @@
     <vendor url="https://github.com/example/project-view-bottom-files">Senior IntelliJ Platform Team</vendor>
 
     <description><![CDATA[
-        <p>A high-performance IntelliJ Platform plugin that positions designated files (such as
-        <code>package-info.java</code>) at the bottom of their parent directory in the Project Tool Window.</p>
+        <p>A high-performance IntelliJ Platform plugin that organizes Java elements in the Project Tool Window
+        by their type (Interfaces, Abstract Classes, Classes, Final Classes, Records, Enums, Annotations)
+        while strictly keeping designated files (such as <code>package-info.java</code>) at the very bottom.</p>
         <ul>
             <li><strong>Folders Always on Top:</strong> Directories remain unaffected and stay at the top.</li>
-            <li><strong>Alphabetical Ordering:</strong> All standard files remain strictly sorted A-Z.</li>
-            <li><strong>Zero UI Latency:</strong> Uses $O(1)$ fast-path in-memory matching and dumb-mode resilience.</li>
+            <li><strong>Type-Based Grouping:</strong> Interfaces, Classes, Enums, Records, etc. are grouped together according to their IntelliJ icon.</li>
+            <li><strong>Alphabetical Ordering:</strong> All files within each group remain strictly sorted A-Z.</li>
+            <li><strong>Bottom Files:</strong> <code>package-info.java</code> is always positioned at the very bottom.</li>
+            <li><strong>Zero UI Latency:</strong> Stub-backed checks and dumb-mode resilience prevent any UI lag.</li>
         </ul>
     ]]></description>
 
