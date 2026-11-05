@@ -1,26 +1,33 @@
 package com.plugin.projectview.bottomfiles
 
+import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.projectView.TreeStructureProvider
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ClassTreeNode
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.DumbAware
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiNamedElement
 import java.util.ArrayList
 
 /**
- * Intercepts Project Tool Window child nodes and organizes them into categorized groups:
+ * Intercepts Project Tool Window child nodes and organizes them into categorized groups
+ * for both Java and Kotlin projects:
  * 1. Folders remain at the top (handled natively by IntelliJ)
- * 2. Interfaces
- * 3. Abstract Classes
- * 4. Classes (Normal)
- * 5. Final Classes
- * 6. Records
- * 7. Enums
- * 8. Annotations
- * 9. Other non-class files
- * 10. Bottom files (package-info.java) strictly at the very bottom
+ * 2. Interfaces (Java, Kotlin, Sealed)
+ * 3. Abstract Classes (Java, Kotlin, Sealed)
+ * 4. Classes (Java normal, Kotlin normal, Data, Open)
+ * 5. Final Classes (Java final)
+ * 6. Objects (Kotlin singleton objects)
+ * 7. Records (Java records)
+ * 8. Enums (Java enums, Kotlin enum classes)
+ * 9. Annotations (Java annotations, Kotlin annotation classes)
+ * 10. Kotlin Files (Kotlin files with top-level functions/properties)
+ * 11. Other Files (Non-code / resource files grouped by extension: .gradle.kts, .json, .properties, .sql, .xml, .yml)
+ * 12. Bottom Files (package-info.java) strictly at the very bottom
  *
  * Implements [DumbAware] so tree rendering remains fast and active during background indexing.
  */
@@ -35,10 +42,10 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
             return children
         }
 
-        // --- FAST PATH: ZERO ALLOCATIONS IF NO FILES/CLASSES ARE PRESENT ---
+        // --- FAST PATH: ZERO ALLOCATIONS IF ONLY DIRECTORIES ARE PRESENT ---
         var hasCategorizableNodes = false
         for (child in children) {
-            if (child is ClassTreeNode || child is PsiFileNode) {
+            if (child is ProjectViewNode<*> && child.getTypeSortWeight(false) == 0) {
                 hasCategorizableNodes = true
                 break
             }
@@ -54,11 +61,16 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
         for (child in children) {
             when {
                 // Already wrapped nodes
-                child is BottomPsiFileNode || child is CategorizedClassTreeNode || child is CategorizedPsiFileNode -> {
+                child is BottomPsiFileNode || child is CategorizedClassTreeNode || child is CategorizedPsiFileNode || child is CategorizedNodeWrapper -> {
                     modifiedChildren.add(child)
                 }
 
-                // Java Class Tree Node (e.g. top-level class file transformed by ClassesTreeStructureProvider)
+                // Directories / folders (getTypeSortWeight != 0) - preserve untouched for "Folders Always on Top"
+                child !is ProjectViewNode<*> || child.getTypeSortWeight(false) != 0 -> {
+                    modifiedChildren.add(child)
+                }
+
+                // Java ClassTreeNode (e.g. top-level Java class file transformed by ClassesTreeStructureProvider)
                 child is ClassTreeNode -> {
                     val project = child.project
                     val psiClass = child.psiClass
@@ -78,26 +90,26 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
                     }
                 }
 
-                // File Node
+                // PsiFileNode (Java files, Kotlin files, bottom files, resources)
                 child is PsiFileNode -> {
-                    val fileName = child.virtualFile?.name ?: child.value?.name
+                    val fileName = child.virtualFile?.name ?: child.value?.name ?: ""
                     val project = child.project
                     val psiFile = child.value
 
                     if (project != null && psiFile != null && psiFile.isValid) {
                         if (BottomFileConstants.isBottomFile(fileName)) {
-                            // Bottom files (e.g. package-info.java)
+                            // Designated bottom files (e.g. package-info.java)
                             modifiedChildren.add(BottomPsiFileNode(project, psiFile, effectiveSettings))
-                        } else if (psiFile is PsiClassOwner && psiFile.classes.isNotEmpty()) {
-                            // Java file with classes that wasn't converted to ClassTreeNode
-                            val category = JavaTypeClassifier.classify(psiFile.classes[0])
-                            modifiedChildren.add(
-                                CategorizedPsiFileNode(project, psiFile, effectiveSettings, category)
-                            )
                         } else {
-                            // Other non-class files (e.g. .xml, .properties, .yml, .json, .md)
+                            val category = resolveCategoryForFile(psiFile)
+                            val ext = child.virtualFile?.extension ?: ""
+                            val sortKey = if (category == JavaTypeCategory.OTHER_FILE && ext.isNotEmpty()) {
+                                "${category.sortPrefix}${ext.uppercase()}_$fileName"
+                            } else {
+                                "${category.sortPrefix}$fileName"
+                            }
                             modifiedChildren.add(
-                                CategorizedPsiFileNode(project, psiFile, effectiveSettings, JavaTypeCategory.OTHER_FILE)
+                                CategorizedPsiFileNode(project, psiFile, effectiveSettings, category, sortKey)
                             )
                         }
                     } else {
@@ -105,13 +117,56 @@ class BottomFilesTreeStructureProvider : TreeStructureProvider, DumbAware {
                     }
                 }
 
-                // Folders (PsiDirectoryNode) and other non-file nodes are kept unmodified
+                // Other ProjectViewNodes (such as Kotlin's KtClassOrObjectTreeNode)
                 else -> {
-                    modifiedChildren.add(child)
+                    val project = child.project
+                    val value = child.value
+                    if (project != null && value != null) {
+                        val category = resolveCategoryForElement(value)
+                        if (category != null) {
+                            val name = child.name ?: (value as? PsiNamedElement)?.name ?: ""
+                            modifiedChildren.add(
+                                CategorizedNodeWrapper(project, child, category, name)
+                            )
+                        } else {
+                            modifiedChildren.add(child)
+                        }
+                    } else {
+                        modifiedChildren.add(child)
+                    }
                 }
             }
         }
 
         return modifiedChildren
+    }
+
+    private fun resolveCategoryForElement(element: Any?): JavaTypeCategory? {
+        if (element == null) return null
+
+        // 1. Kotlin element (KtClassOrObject, KtFile)
+        val kotlinCategory = KotlinTypeClassifier.classify(element)
+        if (kotlinCategory != null) return kotlinCategory
+
+        // 2. Java PsiClass
+        if (element is PsiClass) {
+            return JavaTypeClassifier.classify(element)
+        }
+
+        return null
+    }
+
+    private fun resolveCategoryForFile(psiFile: PsiFile): JavaTypeCategory {
+        // 1. Kotlin file (KtFile)
+        val kotlinCategory = KotlinTypeClassifier.classify(psiFile)
+        if (kotlinCategory != null) return kotlinCategory
+
+        // 2. Java file with classes
+        if (psiFile is PsiClassOwner && psiFile.classes.isNotEmpty()) {
+            return JavaTypeClassifier.classify(psiFile.classes[0])
+        }
+
+        // 3. Resource / config / other file (e.g. .gradle.kts, .json, .properties, .sql, .xml, .yml)
+        return JavaTypeCategory.OTHER_FILE
     }
 }

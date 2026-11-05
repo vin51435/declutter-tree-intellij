@@ -6,13 +6,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 
 /**
- * Custom PsiFileNode wrapper for files categorized by type (e.g. non-class files or Java files with multiple classes).
+ * Custom PsiFileNode wrapper for files categorized by type and extension.
  */
 class CategorizedPsiFileNode(
     project: Project,
     value: PsiFile,
     viewSettings: ViewSettings,
-    val category: JavaTypeCategory
+    val category: JavaTypeCategory,
+    val customSortKey: String? = null
 ) : PsiFileNode(project, value, viewSettings) {
 
     /**
@@ -26,6 +27,9 @@ class CategorizedPsiFileNode(
      * Lexicographical sort key used when "Sort by Name" is active.
      */
     override fun getSortKey(): Comparable<*>? {
+        if (customSortKey != null) {
+            return customSortKey
+        }
         val fileName = virtualFile?.name ?: value?.name ?: return null
         return "${category.sortPrefix}$fileName"
     }

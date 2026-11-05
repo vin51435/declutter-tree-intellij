@@ -20,6 +20,7 @@ dependencies {
     intellijPlatform {
         intellijIdeaCommunity(properties("platformVersion").get())
         bundledPlugin("com.intellij.java")
+        bundledPlugin("org.jetbrains.kotlin")
     }
 
     testImplementation(kotlin("test"))

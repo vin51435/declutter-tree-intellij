@@ -13,9 +13,11 @@ class JavaTypeCategoryTest {
             JavaTypeCategory.ABSTRACT_CLASS,
             JavaTypeCategory.CLASS,
             JavaTypeCategory.FINAL_CLASS,
+            JavaTypeCategory.OBJECT,
             JavaTypeCategory.RECORD,
             JavaTypeCategory.ENUM,
             JavaTypeCategory.ANNOTATION,
+            JavaTypeCategory.KOTLIN_FILE,
             JavaTypeCategory.OTHER_FILE,
             JavaTypeCategory.BOTTOM_FILE
         )
@@ -37,9 +39,11 @@ class JavaTypeCategoryTest {
             JavaTypeCategory.ABSTRACT_CLASS,
             JavaTypeCategory.CLASS,
             JavaTypeCategory.FINAL_CLASS,
+            JavaTypeCategory.OBJECT,
             JavaTypeCategory.RECORD,
             JavaTypeCategory.ENUM,
             JavaTypeCategory.ANNOTATION,
+            JavaTypeCategory.KOTLIN_FILE,
             JavaTypeCategory.OTHER_FILE,
             JavaTypeCategory.BOTTOM_FILE
         )
@@ -55,7 +59,7 @@ class JavaTypeCategoryTest {
     }
 
     @Test
-    fun `test composite sort key groups types together and preserves alphabetical ordering within groups`() {
+    fun `test composite sort key groups Java and Kotlin types together and preserves alphabetical ordering within groups`() {
         val items = listOf(
             "${JavaTypeCategory.INTERFACE.sortPrefix}UserRepository",
             "${JavaTypeCategory.INTERFACE.sortPrefix}AuthService",
@@ -64,15 +68,20 @@ class JavaTypeCategoryTest {
             "${JavaTypeCategory.CLASS.sortPrefix}UserServiceImpl",
             "${JavaTypeCategory.CLASS.sortPrefix}ApplicationStartupListener",
             "${JavaTypeCategory.FINAL_CLASS.sortPrefix}SystemConstants",
-            "${JavaTypeCategory.FINAL_CLASS.sortPrefix}AppConfig",
+            "${JavaTypeCategory.OBJECT.sortPrefix}AppConfig",
+            "${JavaTypeCategory.OBJECT.sortPrefix}NetworkConstants",
             "${JavaTypeCategory.RECORD.sortPrefix}UserResponse",
             "${JavaTypeCategory.RECORD.sortPrefix}CreateUserRequest",
             "${JavaTypeCategory.ENUM.sortPrefix}UserRole",
             "${JavaTypeCategory.ENUM.sortPrefix}AccountStatus",
             "${JavaTypeCategory.ANNOTATION.sortPrefix}Transactional",
             "${JavaTypeCategory.ANNOTATION.sortPrefix}Audited",
-            "${JavaTypeCategory.OTHER_FILE.sortPrefix}schema.sql",
-            "${JavaTypeCategory.OTHER_FILE.sortPrefix}application.yml",
+            "${JavaTypeCategory.KOTLIN_FILE.sortPrefix}Utils.kt",
+            "${JavaTypeCategory.KOTLIN_FILE.sortPrefix}Extensions.kt",
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}SQL_schema.sql",
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}PROPERTIES_datasource.properties",
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}PROPERTIES_application.properties",
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}JSON_openapi.json",
             "${JavaTypeCategory.BOTTOM_FILE.sortPrefix}package-info.java"
         )
 
@@ -92,26 +101,35 @@ class JavaTypeCategoryTest {
             "${JavaTypeCategory.CLASS.sortPrefix}UserServiceImpl",
 
             // 4. Final Classes (sorted A-Z)
-            "${JavaTypeCategory.FINAL_CLASS.sortPrefix}AppConfig",
             "${JavaTypeCategory.FINAL_CLASS.sortPrefix}SystemConstants",
 
-            // 5. Records (sorted A-Z)
+            // 5. Objects (Kotlin singleton objects, sorted A-Z)
+            "${JavaTypeCategory.OBJECT.sortPrefix}AppConfig",
+            "${JavaTypeCategory.OBJECT.sortPrefix}NetworkConstants",
+
+            // 6. Records (sorted A-Z)
             "${JavaTypeCategory.RECORD.sortPrefix}CreateUserRequest",
             "${JavaTypeCategory.RECORD.sortPrefix}UserResponse",
 
-            // 6. Enums (sorted A-Z)
+            // 7. Enums (sorted A-Z)
             "${JavaTypeCategory.ENUM.sortPrefix}AccountStatus",
             "${JavaTypeCategory.ENUM.sortPrefix}UserRole",
 
-            // 7. Annotations (sorted A-Z)
+            // 8. Annotations (sorted A-Z)
             "${JavaTypeCategory.ANNOTATION.sortPrefix}Audited",
             "${JavaTypeCategory.ANNOTATION.sortPrefix}Transactional",
 
-            // 8. Other Files (sorted A-Z)
-            "${JavaTypeCategory.OTHER_FILE.sortPrefix}application.yml",
-            "${JavaTypeCategory.OTHER_FILE.sortPrefix}schema.sql",
+            // 9. Kotlin Files (top-level functions/properties, sorted A-Z)
+            "${JavaTypeCategory.KOTLIN_FILE.sortPrefix}Extensions.kt",
+            "${JavaTypeCategory.KOTLIN_FILE.sortPrefix}Utils.kt",
 
-            // 9. Bottom Files (strictly at the bottom)
+            // 10. Other Files (grouped by extension, sorted A-Z)
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}JSON_openapi.json",
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}PROPERTIES_application.properties",
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}PROPERTIES_datasource.properties",
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}SQL_schema.sql",
+
+            // 11. Bottom Files (strictly at the bottom)
             "${JavaTypeCategory.BOTTOM_FILE.sortPrefix}package-info.java"
         )
 
@@ -119,16 +137,18 @@ class JavaTypeCategoryTest {
     }
 
     @Test
-    fun `test package-info is strictly sorted at the very bottom after all types and names`() {
+    fun `test package-info is strictly sorted at the very bottom after all types and extensions`() {
         val packageInfoKey = "${JavaTypeCategory.BOTTOM_FILE.sortPrefix}package-info.java"
 
         val sampleKeys = listOf(
             "${JavaTypeCategory.INTERFACE.sortPrefix}ZZZ_Interface",
             "${JavaTypeCategory.CLASS.sortPrefix}ZZZ_Class",
+            "${JavaTypeCategory.OBJECT.sortPrefix}ZZZ_Object",
             "${JavaTypeCategory.RECORD.sortPrefix}ZZZ_Record",
             "${JavaTypeCategory.ENUM.sortPrefix}ZZZ_Enum",
             "${JavaTypeCategory.ANNOTATION.sortPrefix}ZZZ_Annotation",
-            "${JavaTypeCategory.OTHER_FILE.sortPrefix}zzz_other.txt"
+            "${JavaTypeCategory.KOTLIN_FILE.sortPrefix}zzz_utils.kt",
+            "${JavaTypeCategory.OTHER_FILE.sortPrefix}ZZZ_other.zzz"
         )
 
         for (key in sampleKeys) {
