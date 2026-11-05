@@ -48,6 +48,12 @@ intellijPlatform {
         }
     }
 
+    pluginVerification {
+        ides {
+            recommended()
+        }
+    }
+
     signing {
         // Ready for JetBrains Marketplace signing certificates
     }
