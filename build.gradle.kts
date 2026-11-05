@@ -4,6 +4,8 @@ plugins {
     id("org.jetbrains.intellij.platform") version "2.2.1"
 }
 
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
+
 fun properties(key: String) = providers.gradleProperty(key)
 
 group = properties("pluginGroup").get()
@@ -51,8 +53,12 @@ intellijPlatform {
 
     pluginVerification {
         ides {
-            recommended()
+            ide(properties("platformType").get(), properties("platformVersion").get())
         }
+        failureLevel = listOf(
+            VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+            VerifyPluginTask.FailureLevel.INVALID_PLUGIN
+        )
     }
 
     signing {

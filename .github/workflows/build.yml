@@ -30,8 +30,15 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
 
-      - name: Verify Plugin Compatibility
-        run: ./gradlew verifyPlugin
-
       - name: Build Plugin Distribution
-        run: ./gradlew buildPlugin
+        run: ./gradlew buildPlugin --stacktrace
+
+      - name: Verify Plugin Compatibility
+        run: ./gradlew verifyPlugin --stacktrace
+
+      - name: Upload Plugin Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: declutter-tree-intellij-distribution
+          path: build/distributions/*.zip
+          if-no-files-found: error
