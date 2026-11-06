@@ -26,6 +26,13 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <p><strong>1.0.1</strong></p>
+        <ul>
+            <li>Enhanced Project View organization with customizable top and bottom file anchoring.</li>
+            <li>Improved type-based ordering for Java and Kotlin declaration kinds.</li>
+            <li>Added visual documentation assets and updated configuration descriptions.</li>
+            <li>Refined CI test and plugin verification workflows.</li>
+        </ul>
         <p><strong>1.0.0</strong> - Initial release with high-performance TreeStructureProvider and BottomPsiFileNode.</p>
     ]]></change-notes>
 
